@@ -1,0 +1,5 @@
+This file simply contains a few lines of text. It may contain
+any ASCII characters that can be stored in a "char".  This 
+includes numbers too like 56.
+When using fgets to read this file, we will notice that each
+call to fgets reads one line of the file.

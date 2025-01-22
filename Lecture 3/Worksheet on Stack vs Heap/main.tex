@@ -1,0 +1,77 @@
+\documentclass[12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{array}
+\usepackage{geometry}
+
+\geometry{letterpaper, portrait, margin=1in}
+
+\begin{document}
+
+\section*{Solutions to the Worksheet}
+
+\subsection*{1. Memory Allocation Table}
+\begin{tabular}{|p{5cm}|p{3cm}|p{3cm}|p{3cm}|}
+\hline
+\textbf{Code Fragment} & \textbf{Space} & \textbf{Where?} & \textbf{De-allocated When?} \\
+\hline
+\texttt{int main() \{ int i; \}} & \texttt{sizeof(int)} & Stack frame for \texttt{main} & When program ends \\
+\hline
+\texttt{int fun() \{ float i; \}} & \texttt{sizeof(float)} & Stack frame for \texttt{fun} & When \texttt{fun()} returns \\
+\hline
+\texttt{int main() \{ fun(); \}} & None & N/A & N/A \\
+\hline
+\texttt{int fun(char i) \{ ... \}} & \texttt{sizeof(char)} & Stack frame for \texttt{fun} & When \texttt{fun()} returns \\
+\hline
+\texttt{int main() \{ fun('a'); \}} & \texttt{sizeof(char)} for \texttt{fun('a')} & Stack frame for \texttt{fun} & When \texttt{fun()} returns \\
+\hline
+\texttt{int main() \{ char i[10] = \{'h','o','i'\}; \}} & \texttt{sizeof(char) * 10} & Stack frame for \texttt{main} & When program ends \\
+\hline
+\texttt{int main() \{ char *i; \}} & \texttt{sizeof(char *)} & Stack frame for \texttt{main} & When program ends \\
+\hline
+\texttt{int main() \{ int *i; \}} & \texttt{sizeof(int *)} & Stack frame for \texttt{main} & When program ends \\
+\hline
+\texttt{int fun(int *i) \{ ... \}} & \texttt{sizeof(int *)} & Stack frame for \texttt{fun} & When \texttt{fun()} returns \\
+\hline
+\texttt{int main() \{ int i[5] = \{4,5,2,5,1\}; fun(i); \}} & \texttt{sizeof(int) * 5} & Stack frame for \texttt{main} & When program ends \\
+\hline
+\texttt{int main() \{ int *i; i = malloc(sizeof(int)); \}} & \texttt{sizeof(int *)} for \texttt{i}, \texttt{sizeof(int)} for \texttt{malloc} & \texttt{i} in stack, allocated memory in heap & \texttt{i} de-allocated at program end, heap memory with \texttt{free()} \\
+\hline
+\texttt{void fun(int **i) \{ *i = malloc(sizeof(int) * 7); \}} & \texttt{sizeof(int *)} in \texttt{fun}, \texttt{sizeof(int) * 7} in heap & Stack frame for \texttt{fun}, allocated memory in heap & Stack frame cleared when \texttt{fun()} returns, heap memory de-allocated with \texttt{free()} \\
+\hline
+\texttt{int main() \{ int *i; fun(\&i); free(i); \}} & \texttt{sizeof(int *)} for \texttt{i}, \texttt{sizeof(int) * 7} in heap & \texttt{i} in stack, allocated memory in heap & \texttt{i} de-allocated when program ends, heap memory with \texttt{free()} \\
+\hline
+\end{tabular}
+
+\subsection*{2. Memory Tracing for malloc Example}
+
+\textbf{Heap Memory (Dynamic Allocation):}
+\begin{itemize}
+    \item Address \texttt{0x23c}: \texttt{numbers2[0]} = 0
+    \item Address \texttt{0x240}: \texttt{numbers2[1]} = 1
+    \item Address \texttt{0x244}: \texttt{numbers2[2]} = 2
+\end{itemize}
+
+\textbf{Stack Frame for \texttt{initialize}:}
+\begin{itemize}
+    \item Address \texttt{0x454}: \texttt{a1[0]} = 0
+    \item Address \texttt{0x458}: \texttt{a1[1]} = 1
+    \item Address \texttt{0x45c}: \texttt{a1[2]} = 2
+    \item Address \texttt{0x460}: \texttt{a2[0]} = 0
+    \item Address \texttt{0x464}: \texttt{a2[1]} = 1
+    \item Address \texttt{0x468}: \texttt{a2[2]} = 2
+\end{itemize}
+
+\textbf{Stack Frame for \texttt{main}:}
+\begin{itemize}
+    \item Address \texttt{0x474}: \texttt{numbers1[0]} = 0
+    \item Address \texttt{0x478}: \texttt{numbers1[1]} = 1
+    \item Address \texttt{0x47c}: \texttt{numbers1[2]} = 2
+    \item Address \texttt{0x480}: \texttt{numbers2[0]} = 0
+    \item Address \texttt{0x484}: \texttt{numbers2[1]} = 1
+    \item Address \texttt{0x488}: \texttt{numbers2[2]} = 2
+\end{itemize}
+
+\end{document}

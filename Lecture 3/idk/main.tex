@@ -1,0 +1,125 @@
+\documentclass[12pt]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage{newunicodechar}
+\usepackage{EngReport}
+\usepackage{listings}
+\usepackage{cancel}
+\usepackage{comment}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{setspace}
+\usepackage{geometry}
+\usepackage{xcolor}  % Required for coloring in listings
+
+\graphicspath{{Images/}}
+\onehalfspacing
+\geometry{letterpaper, portrait, includeheadfoot=true, hmargin=1in, vmargin=1in}
+
+% Define custom colors
+\definecolor{myblue}{RGB}{0, 128, 255}
+\definecolor{mygreen}{RGB}{34, 139, 34}
+\definecolor{myorange}{RGB}{255, 140, 0}
+\definecolor{mygray}{RGB}{128, 128, 128}
+\definecolor{mypurple}{RGB}{148, 0, 211}
+\definecolor{myred}{RGB}{255, 69, 0}
+
+% Configure listings for Python with custom styles
+\lstset{
+    language=Python,             % Set language to Python
+    basicstyle=\ttfamily\small,  % Use a smaller monospace font
+    keywordstyle=\color{myblue}\bfseries,  % Keywords in blue and bold
+    commentstyle=\color{mygreen}\itshape,  % Comments in green and italic
+    stringstyle=\color{myorange},          % Strings in orange
+    numberstyle=\color{mygray},            % Line numbers in gray
+    identifierstyle=\color{mypurple},      % Functions and variables in purple
+    morekeywords={print, len, range},      % Define additional Python keywords
+    showstringspaces=false,                % Do not show spaces in strings
+    breaklines=true,                       % Enable line breaking
+    numbers=left,                          % Add line numbers to the left
+    numbersep=5pt,                         % Space between line numbers and code
+    frame=single,                          % Add a box around the code
+    rulecolor=\color{mygray},              % Frame color
+    moredelim=[is][\color{myred}]{@@}{@@}, % Custom inline LaTeX coloring
+}
+
+\begin{document}
+\renewcommand{\familydefault}{\rmdefault}
+
+\section*{CSC209H Worksheet: malloc Basics}
+
+\subsection*{Question 1: Memory Allocation Table}
+Each time a variable is declared or memory is allocated, it is important to understand how much memory is allocated, where it is allocated, and when it is deallocated. The table below summarizes this information:
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{|l|l|l|l|}
+        \hline
+        \textbf{Code Fragment} & \textbf{Space (Size)} & \textbf{Where Allocated} & \textbf{Deallocated When} \\ \hline
+        \verb|int i;| & \verb|sizeof(int)| & Stack (main) & Program ends \\ \hline
+        \verb|float i;| (in \verb|fun|) & \verb|sizeof(float)| & Stack (fun) & When \verb|fun| returns \\ \hline
+        \verb|char i;| (in \verb|fun|) & \verb|sizeof(char)| & Stack (fun) & When \verb|fun| returns \\ \hline
+        \verb|char i[10] = {'h', 'i'};| & \verb|10 * sizeof(char)| & Stack (main) & Program ends \\ \hline
+        \verb|char *i;| & \verb|sizeof(char*)| & Stack (main) & Program ends \\ \hline
+        \verb|int *i;| & \verb|sizeof(int*)| & Stack (main) & Program ends \\ \hline
+        \verb|int i[5] = {4, 5, 2, 5, 1};| & \verb|5 * sizeof(int)| & Stack (main) & Program ends \\ \hline
+        \verb|int *i = malloc(sizeof(int));| & \verb|sizeof(int)| & Heap & When \verb|free(i)| is called \\ \hline
+        \verb|*i = malloc(sizeof(int) * 7);| & \verb|7 * sizeof(int)| & Heap & When \verb|free(i)| is called \\ \hline
+    \end{tabular}
+    \caption{Memory Allocation Table}
+    \label{tab:memory_allocation}
+\end{table}
+
+\pagebreak
+
+\subsection*{Question 2: Memory Trace}
+Trace the memory usage for the program below up to the point when \verb|initialize| is about to return.
+
+\begin{lstlisting}[language=C]
+#include <stdio.h>
+#include <stdlib.h>
+
+void initialize(int *a1, int *a2, int n) {
+    for (int i = 0; i < n; i++) {
+        a1[i] = i;
+        a2[i] = i;
+    }
+}
+
+int main() {
+    int numbers1[3];
+    int *numbers2 = malloc(sizeof(int) * 3);
+    initialize(numbers1, numbers2, 3);
+    for (int i = 0; i < 3; i++) {
+        printf("%d %d\n", numbers1[i], numbers2[i]);
+    }
+    free(numbers2);
+    return 0;
+}
+\end{lstlisting}
+
+\subsubsection*{Memory Layout}
+Below is the memory layout at the point where \verb|initialize| is about to return:
+
+\begin{table}[h!]
+    \centering
+    \begin{tabular}{|l|l|l|l|}
+        \hline
+        \textbf{Section}         & \textbf{Address} & \textbf{Value}             & \textbf{Label}          \\ \hline
+        \textbf{Heap}            & 0x23c            & \verb|0|                   & \verb|numbers2[0]|      \\ \hline
+                                 & 0x240            & \verb|1|                   & \verb|numbers2[1]|      \\ \hline
+                                 & 0x244            & \verb|2|                   & \verb|numbers2[2]|      \\ \hline
+        \textbf{Stack (initialize)} & 0x454         & Address of \verb|numbers1| & \verb|a1|               \\ \hline
+                                 & 0x458            & Address of \verb|numbers2| & \verb|a2|               \\ \hline
+                                 & 0x45c            & \verb|3|                   & \verb|n|                \\ \hline
+                                 & 0x460            & \verb|0|                   & \verb|i| (loop counter) \\ \hline
+        \textbf{Stack (main)}    & 0x474            & \verb|{0, 1, 2}|           & \verb|numbers1|         \\ \hline
+                                 & 0x480            & \verb|0x23c| (Heap addr)   & \verb|numbers2|         \\ \hline
+    \end{tabular}
+    \caption{Memory Layout}
+    \label{tab:memory_layout}
+\end{table}
+
+\end{document}
